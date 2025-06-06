@@ -29,9 +29,9 @@ A Streamlit web application that generates personalized cold emails for job appl
 
 ```
 Cold-Email-Generator/
+├── main.py              # Streamlit app entrypoint
 │
 ├── app/
-│   ├── main.py              # Streamlit app entrypoint
 │   ├── chains.py            # LangChain prompts and chains
 │   ├── portfolio.py         # Loads and queries personal projects
 │   ├── utils.py             # Helper functions (e.g. text cleaning)
