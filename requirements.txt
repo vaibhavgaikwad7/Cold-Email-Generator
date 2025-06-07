@@ -6,3 +6,4 @@ protobuf<=3.20.3
 python-dotenv
 requests
 tqdm
+beautifulsoup4
