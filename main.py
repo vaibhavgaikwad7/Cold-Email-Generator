@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_community.document_loaders import BeautifulSoupWebLoader
+from langchain_community.document_loaders import BSHTMLLoader
 from app.chains import Chain
 from app.portfolio import Portfolio
 from app.utils import clean_text
@@ -45,7 +45,7 @@ def create_streamlit_app(llm, portfolio, clean_text):
     if submit_button:
         try:
             with st.spinner("🔍 Extracting job data and generating email..."):
-                loader = BeautifulSoupWebLoader([url_input])
+                loader = BSHTMLLoader([url_input])
                 html_docs = loader.load()
 
                 if not html_docs:
