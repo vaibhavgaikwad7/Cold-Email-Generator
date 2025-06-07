@@ -1,15 +1,13 @@
 import streamlit as st
-from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_loaders import BeautifulSoupWebLoader
 from app.chains import Chain
 from app.portfolio import Portfolio
 from app.utils import clean_text
 
-MAX_TOKENS = 3000
-
 def create_streamlit_app(llm, portfolio, clean_text):
     st.set_page_config(layout="wide", page_title="Cold Email Generator", page_icon="📩")
 
-    # 🔧 Custom Styling
+    # 💅 Styling
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("""
         <style>
@@ -31,13 +29,13 @@ def create_streamlit_app(llm, portfolio, clean_text):
         </style>
     """, unsafe_allow_html=True)
 
-    # 📝 Title & Subtitle
+    # 📝 Title
     st.markdown("""
         <h1 style='text-align: center; color: #4CAF50;'>📩 Cold Mail Generator</h1>
         <p style='text-align: center; font-size:16px;'>Generate personalized job application emails with AI</p>
     """, unsafe_allow_html=True)
 
-    # 🔗 Input + 🚀 Submit button in a single row
+    # 🔗 Input
     col1, col2 = st.columns([10, 1])
     with col1:
         url_input = st.text_input("🔗 Enter a Job URL", value="https://www.metacareers.com/jobs/774198984091403/")
@@ -47,25 +45,32 @@ def create_streamlit_app(llm, portfolio, clean_text):
     if submit_button:
         try:
             with st.spinner("🔍 Extracting job data and generating email..."):
-                loader = WebBaseLoader([url_input])
-                raw = loader.load()
+                loader = BeautifulSoupWebLoader([url_input])
+                html_docs = loader.load()
 
-                if not raw:
-                    raise ValueError("Failed to load content from the URL.")
+                if not html_docs:
+                    st.error("❌ Failed to load page content. Please check the URL.")
+                    return
 
-                data = clean_text(raw[0].page_content)
-                if len(data) > MAX_TOKENS:
-                    data = data[:MAX_TOKENS]
+                raw_text = html_docs[0].page_content
+                data = clean_text(raw_text)
+
+                # Preview first 500 characters of content
+                st.info(f"🔍 Preview of scraped content:\n\n{data[:500]}...")
 
                 portfolio.load_portfolio()
                 jobs = llm.extract_jobs(data)
+
+                if not jobs:
+                    st.warning("⚠️ No job details could be extracted from this URL. Try a different one.")
+                    return
 
                 for job in jobs:
                     skills = job.get('skills', [])
                     links = portfolio.query_links(skills)
                     email = llm.write_mail(job, links)
 
-                    # 📬 Styled result box
+                    # 📬 Output
                     st.markdown("""
                         <div style='background-color: #f8f9fa;
                             padding: 20px;
@@ -80,7 +85,6 @@ def create_streamlit_app(llm, portfolio, clean_text):
                     st.code(email, language='markdown')
                     st.markdown("</div>", unsafe_allow_html=True)
 
-                    # 💾 Download & 🧠 Debug info
                     st.download_button("📥 Download Email", email, file_name="cold_email.txt")
                     with st.expander("🧠 View Extracted Job JSON"):
                         st.json(job)
