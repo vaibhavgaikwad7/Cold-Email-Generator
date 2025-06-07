@@ -1,21 +1,14 @@
 import pandas as pd
-import chromadb
-import uuid
-
 
 class Portfolio:
-    def __init__(self, file_path="app/resource/my_portfolio.csv"):
-        self.file_path = file_path
-        self.data = pd.read_csv(file_path)
-        self.chroma_client = chromadb.PersistentClient('vectorstore')
-        self.collection = self.chroma_client.get_or_create_collection(name="portfolio")
-
     def load_portfolio(self):
-        if not self.collection.count():
-            for _, row in self.data.iterrows():
-                self.collection.add(documents=row["Techstack"],
-                                    metadatas={"links": row["Links"]},
-                                    ids=[str(uuid.uuid4())])
+        # You can mock loading here — or skip if not needed
+        self.links = [
+            "https://github.com/vaibhavgaikwad7/Credibility-Detection-of-Health-Web-Blogs-Using-Explainable-AI",
+            "https://github.com/vaibhavgaikwad7/Portfolio-Optimization-Using-Bidirectional-CNN-LSTM-with-Attention-Mechanism",
+            "https://github.com/vaibhavgaikwad7/Energy-Consumption-Predictor"
+        ]
 
     def query_links(self, skills):
-        return self.collection.query(query_texts=skills, n_results=2).get('metadatas', [])
+        # Always return all 3 links (or you can return based on skills later)
+        return self.links
