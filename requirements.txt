@@ -2,6 +2,7 @@ streamlit
 langchain
 langchain-community
 langchain-groq
+protobuf<=3.20.3
 chromadb
 python-dotenv
 requests
