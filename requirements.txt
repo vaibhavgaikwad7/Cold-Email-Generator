@@ -7,3 +7,4 @@ python-dotenv
 requests
 tqdm
 beautifulsoup4
+html5lib
