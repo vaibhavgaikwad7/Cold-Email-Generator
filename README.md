@@ -78,7 +78,7 @@ Cold-Email-Generator/
 
 ## ✨ Demo
 
-> Coming soon (optional: you can add a Streamlit Community Cloud link or a GIF demo)
+https://cold-email-generator-vvg.streamlit.app/
 
 ---
 
