@@ -4,6 +4,8 @@ from app.chains import Chain
 from app.portfolio import Portfolio
 from app.utils import clean_text
 
+MAX_TOKENS = 3000
+
 def create_streamlit_app(llm, portfolio, clean_text):
     st.set_page_config(layout="wide", page_title="Cold Email Generator", page_icon="📩")
 
@@ -46,7 +48,14 @@ def create_streamlit_app(llm, portfolio, clean_text):
         try:
             with st.spinner("🔍 Extracting job data and generating email..."):
                 loader = WebBaseLoader([url_input])
-                data = clean_text(loader.load().pop().page_content)
+                raw = loader.load()
+
+                if not raw:
+                    raise ValueError("Failed to load content from the URL.")
+
+                data = clean_text(raw[0].page_content)
+                if len(data) > MAX_TOKENS:
+                    data = data[:MAX_TOKENS]
 
                 portfolio.load_portfolio()
                 jobs = llm.extract_jobs(data)
@@ -57,7 +66,6 @@ def create_streamlit_app(llm, portfolio, clean_text):
                     email = llm.write_mail(job, links)
 
                     # 📬 Styled result box
-                    # 🎯 Pretty email display box
                     st.markdown("""
                         <div style='background-color: #f8f9fa;
                             padding: 20px;
@@ -71,7 +79,6 @@ def create_streamlit_app(llm, portfolio, clean_text):
                     """, unsafe_allow_html=True)
                     st.code(email, language='markdown')
                     st.markdown("</div>", unsafe_allow_html=True)
-
 
                     # 💾 Download & 🧠 Debug info
                     st.download_button("📥 Download Email", email, file_name="cold_email.txt")
