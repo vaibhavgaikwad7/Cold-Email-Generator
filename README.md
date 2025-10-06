@@ -1,76 +1,94 @@
-## Document AI Pipeline (Windows‑friendly CommonJS)
+# 📧 Cold Mail Generator
 
+A Streamlit web application that generates personalized cold emails for job applications using AI. Just input a job posting URL and get a ready-to-send cold email tailored to your skills and projects.
 
-It’s designed to be:
-- Simple to run (one command),
-- Deterministic where possible (authors/date via heuristics),
-- LLM-assisted where it helps (summaries),
-- Reproducible (Docker included),
+---
 
-What it extracts?
-- document_type
-- authors
-- document_date
-- summary
-- methods_summary
-- findings_summary/conclusions
+## 🚀 Features
 
-How it works? 
-1) PDF text extraction
-Uses pdf-parse to pull raw text, then normalizes whitespace and builds a few “sections.”
+- 🔗 Enter any job URL (e.g., Meta Careers, Walmart Careers, etc.)
+- 🤖 Extracts job description using LangChain's `WebBaseLoader`
+- 🧠 Uses LLMs (Groq + LLaMA3) to understand and extract role, skills, experience
+- 📎 Matches required skills with your portfolio using ChromaDB
+- 📨 Generates a customized cold email
+- 💾 Allows download of the generated email
+- 🧪 View extracted job JSON for transparency
 
-2) Header heuristics (authors + date)
-- Finds a plausible title line, then slices an “author zone” immediately below it (skipping wrapped title fragments, affiliations, emails, etc.).
-- Extracts authors from that zone using robust rules (rejects affiliations/roles/degrees).
-- Extracts dates using ranked patterns: prefers “Posted/Published/Accepted/Received” cues and only keeps YYYY-MM for confusing numeric dates.
+---
 
-3) Authority hints
-When a DOI appears in the header, we attempt Crossref and only trust it if the title roughly matches the header. This avoids accidentally pulling references.
+## 🛠️ Tech Stack
 
-4) LLM ensemble (2 prompts)
-- Two complimentary prompts read the text and produce structured JSON. I used three LLMS: Ollama (Offline), OpenAI (gpt 4o) and Anthropic (Claude 4-5) using API key. Additionally also have a "No AI" option which uses heuristics only. 
-- The ensemble merges outputs (e.g., longest reasonable summary, union of author lists after cleaning).
+- **Frontend**: [Streamlit](https://streamlit.io/)
+- **LLM Backend**: [LangChain](https://www.langchain.com/), Groq API with LLaMA-3
+- **Vector DB**: ChromaDB
+- **Data Parsing**: BeautifulSoup (under the hood via LangChain)
 
-5) Fusion & sanitize
-- Heuristic + LLM candidates are fused with simple scoring.
-- Dates are sanitized to ISO, preserving day precision only when truly observed in the header.
+---
 
-### Quickstart (PowerShell)
-1) `npm install`
-2) Set API key for this window: `$env:ANTHROPIC_API_KEY = "YOUR_NEW_CLAUDE_KEY"`
-3) Run on one line:
-`npx ts-node .\src\cli.ts --pdf ".\reference-docs\<YOUR_FILE>.pdf" --provider anthropic --model claude-4-5-sonnet-20250929 --out .\out.json --debug`
+## 📂 Project Structure
 
-OpenAI: set `$env:OPENAI_API_KEY` and use `--provider openai --model gpt-4o-mini`.
-Ollama: run `ollama serve`, pull a model, and use `--provider ollama --model llama3.1:8b`.
+```
+Cold-Email-Generator/
+├── main.py              # Streamlit app entrypoint
+│
+├── app/
+│   ├── chains.py            # LangChain prompts and chains
+│   ├── portfolio.py         # Loads and queries personal projects
+│   ├── utils.py             # Helper functions (e.g. text cleaning)
+│   └── resource/
+│       └── my_portfolio.csv # CSV with your project titles, tech stack, and links
+│
+├── requirements.txt
+└── README.md
+```
 
-Optional structured parsers: start GROBID (port 8070) and add `--grobid-url http://localhost:8070`; or run Unstructured and pass `--unstructured-url`.
+---
 
-Compile: `npm run build` then `node .\dist\cli.js --pdf .\reference-docs\ssrn-5298091.pdf --out .\out.json --debug`.
+## 🔧 Setup Instructions
 
-Docker(PowerShell)
-Build
-` docker build -t doc-pipeline:latest . `
+1. **Clone the repo**  
+   ```bash
+   git clone https://github.com/vaibhavgaikwad7/Cold-Email-Generator.git
+   cd Cold-Email-Generator
+   ```
 
-Run (Anthropic example)
+2. **Create virtual environment & activate it**
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate   # on Windows
+   source venv/bin/activate  # on Mac/Linux
+   ```
 
-docker run --rm -v ${PWD}:/work `
-  -e ANTHROPIC_API_KEY=$env:ANTHROPIC_API_KEY `
-  -e PROVIDER=anthropic `
-  -e MODEL=claude-sonnet-4-5-20250929 `
-  -e PDF_FILE=/work/reference-docs/ssrn-5298091.pdf `
-  -e OUT_FILE=/work/out.json `
-  doc-pipeline:latest`
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
+4. **Set your `.env` file**
+   ```
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
 
-Testing
-` npm run test `
+5. **Run the app**
+   ```bash
+   streamlit run app/main.py
+   ```
 
-# Project Structure 
+---
 
+## ✨ Demo
 
+https://cold-email-generator-vvg.streamlit.app/
 
-The test suite includes:
-- Unit tests for the parser (authors/date extraction, numeric date disambiguation).
-- Fusion tests to ensure parser dates beat LLM guesses when both exist.
-- A light integration test for pdf-parse on a reference doc. 
+---
+
+## 📄 License
+
+MIT License. Feel free to fork, adapt, and share!
+
+---
+
+## 🙋‍♂️ Author
+
+**Vaibhav Gaikwad**  
+[LinkedIn](https://www.linkedin.com/in/vaibhavgaikwad7) · [GitHub](https://github.com/vaibhavgaikwad7)
